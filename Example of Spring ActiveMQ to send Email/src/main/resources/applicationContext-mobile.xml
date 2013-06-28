@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jms="http://www.springframework.org/schema/integration/jms"
+       xmlns:intg="http://www.springframework.org/schema/integration"
+       xmlns:mail="http://www.springframework.org/schema/integration/mail"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://www.springframework.org/schema/integration/jms
+        http://www.springframework.org/schema/integration/jms/spring-integration-jms-2.0.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration-2.1.xsd
+        http://www.springframework.org/schema/integration/mail
+        http://www.springframework.org/schema/integration/mail/spring-integration-mail-2.1.xsd">
+
+
+    <!-- ================================================================== -->
+    <!-- Inbound Mobile gateway (for Mobile form)                           -->
+    <!-- ================================================================== -->
+
+    <!-- We're defining request channels defined on a per-operation basis using
+          Java 5 annotations instead of here. See MobileGateway.java. -->
+    <intg:gateway id="mobileGateway" service-interface="com.examples.MobileGateway"
+                  default-request-channel="newMobileChannel" />
+
+    <!-- ================================================================== -->
+    <!-- Central Mobile intake                                                -->
+    <!-- ================================================================== -->
+
+    <intg:publish-subscribe-channel id="newMobileChannel" />
+
+
+    <!-- ================================================================== -->
+    <!-- Outbound Mobile service bean                                       -->
+    <!-- ================================================================== -->
+
+    <intg:service-activator input-channel="newMobileChannel" ref="mobileService" method="createMobile"  />
+
+
+    <!-- ================================================================== -->
+    <!-- Outbound SMTP adapter (for confirmation e-mails)                   -->
+    <!-- ================================================================== -->
+
+    <intg:transformer input-channel="newMobileChannel" output-channel="confEmailChannel">
+        <bean class="com.examples.MobileTransformer" />
+    </intg:transformer>
+
+    <intg:channel id="confEmailChannel"/>
+
+    <mail:outbound-channel-adapter channel="confEmailChannel" mail-sender="mailSender" />
+
+</beans>

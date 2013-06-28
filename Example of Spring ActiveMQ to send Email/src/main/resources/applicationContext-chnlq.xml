@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jms="http://www.springframework.org/schema/integration/jms"
+       xmlns:intg="http://www.springframework.org/schema/integration"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://www.springframework.org/schema/integration/jms
+        http://www.springframework.org/schema/integration/jms/spring-integration-jms-2.0.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration-2.1.xsd">
+
+
+    <!-- ================================================================== -->
+    <!-- Inbound Mobile gateway (for Mobile form)                           -->
+    <!-- ================================================================== -->
+
+    <!-- We're defining request channels defined on a per-operation basis using
+          Java 5 annotations instead of here. See ChQMobileGateway.java. -->
+    <intg:gateway id="chQMobileGateway" service-interface="com.examples.chnlq.ChQMobileGateway"
+                  default-request-channel="chQMobileChannel" />
+
+    <!-- ================================================================== -->
+    <!-- Central Mobile intake                                                -->
+    <!-- ================================================================== -->
+
+    <intg:publish-subscribe-channel id="chQMobileChannel">
+        <intg:interceptors>
+            <intg:wire-tap channel="logger" />
+        </intg:interceptors>
+    </intg:publish-subscribe-channel>
+
+    <!-- ================================================================== -->
+    <!-- Outbound Mobile service bean                                       -->
+    <!-- ================================================================== -->
+
+    <intg:service-activator input-channel="chQMobileChannel" ref="chQMobileService" method="createChQMobile"  />
+
+
+    <!-- ================================================================== -->
+    <!-- Outbound SMTP adapter (for confirmation e-mails)                   -->
+    <!-- ================================================================== -->
+
+    <intg:transformer input-channel="chQMobileChannel" output-channel="chQInfoChannel">
+        <bean class="com.examples.chnlq.ChQMobileTransformer" />
+    </intg:transformer>
+
+    <intg:channel id="chQInfoChannel">
+        <!--<intg:interceptors>
+            <intg:wire-tap channel="logger" />
+        </intg:interceptors>-->
+    </intg:channel>
+
+    <intg:logging-channel-adapter id="logger" level="DEBUG" log-full-message="true" />
+
+    <bean id="amqChnlMobileQueueId" class="org.apache.activemq.command.ActiveMQQueue">
+        <property name="physicalName" value="amqChnlMobileQueue" />
+    </bean>
+
+    <bean id="activeMQConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="tcp://localhost:61616" />
+    </bean>
+
+    <bean id="container" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref ="activeMQConnectionFactory" />
+        <property name="destination" ref ="amqChnlMobileQueueId"/>
+        <property name="messageListener" ref ="amqChnlMobileListener"/>
+        <property name="concurrentConsumers" value="1" />
+    </bean>
+
+    <bean id="amqChnlMobileListener" class="com.examples.chnlq.AMQChnlMobileListener" />
+
+    <!--<jms:outbound-channel-adapter channel="chQInfoChannel" destination="amqChnlMobileQueueId" />
+
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="activeMQConnectionFactory" />
+        <property name="defaultDestination" ref="amqChnlMobileQueueId" />
+    </bean>-->
+
+</beans>

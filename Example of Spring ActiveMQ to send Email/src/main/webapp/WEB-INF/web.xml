@@ -1,0 +1,31 @@
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         id="WebApp_ID" version="2.5">
+
+    <display-name>Spring examples</display-name>
+    <description>Spring examples</description>
+
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>
+            /WEB-INF/classes/applicationContext.xml
+            /WEB-INF/classes/applicationContext-caching.xml
+            /WEB-INF/classes/applicationContext-mobile.xml
+            /WEB-INF/classes/applicationContext-amqmobile.xml
+            /WEB-INF/classes/applicationContext-chnlq.xml
+            /WEB-INF/classes/applicationContext-mongo.xml
+        </param-value>
+    </context-param>
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+    <servlet>
+        <servlet-name>main</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>main</servlet-name>
+        <url-pattern>/main/*</url-pattern>
+    </servlet-mapping>
+</web-app>
