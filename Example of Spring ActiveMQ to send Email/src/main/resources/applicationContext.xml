@@ -9,16 +9,16 @@
     	">
 
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl"
-          p:host="mail1.impetus.co.in"
+          p:host="host"
           p:port="587"
           p:username="sverma"
-          p:password="switch"
+          p:password="password"
             >
         <property name="javaMailProperties">
             <props>
                 <prop key="mail.smtp.auth">true</prop>
                 <prop key="mail.smtp.starttls.enable">true</prop>
-                <prop key="mail.smtp.auth.ntlm.domain" >IMPETUS</prop>
+                <prop key="mail.smtp.auth.ntlm.domain" >DOMAIN</prop>
             </props>
         </property>
     </bean>
